@@ -14,11 +14,20 @@ var io = socketIo(server)
 io.on('connection',(socket)=>{
     console.log('server connection!')
 
+    socket.emit('newEmail',{
+        from : "e.t@yahoo.com",
+        text : "سلام عزیزم خوبی؟",
+        createAt : 123456789
+    })
+
+    socket.on('createEmail',(email)=>{
+    console.log('createEmail ',email)
+    })
+
     socket.on('disconnect',()=>{
         console.log("server disconnect!")
     })
 })
-
 
 server.listen(port,()=>{
     console.log(`server work on port ${port}`)
