@@ -13,10 +13,12 @@ var server = http.createServer(app)
 var io = socketIo(server)
 io.on('connection',(socket)=>{
     console.log('server connection!')
+
+    socket.on('disconnect',()=>{
+        console.log("server disconnect!")
+    })
 })
-io.on('disconnect',()=>{
-    console.log("server disconnect!")
-})
+
 
 server.listen(port,()=>{
     console.log(`server work on port ${port}`)
