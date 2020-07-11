@@ -14,15 +14,31 @@ var io = socketIo(server)
 io.on('connection',(socket)=>{
     console.log('server connection!')
 
-    socket.emit('newEmail',{
-        from : "e.t@yahoo.com",
-        text : "سلام عزیزم خوبی؟",
-        createAt : 123456789
+    socket.on('createMessage',(message)=>{
+        console.log("create message is : ",message)
+
+        io.emit('newMessage',{
+            from: 'Admin',
+            text: "wellcom to the chat",
+            createAt: new Date().getTime()
+        })
+
+        socket.broadcast.emit('newMessage',{
+            from: 'Admin',
+            text: 'new user joined',
+            createAt: new Date().getTime()
+        })
     })
 
-    socket.on('createEmail',(email)=>{
-    console.log('createEmail ',email)
-    })
+    // socket.emit('newEmail',{
+    //     from : "e.t@yahoo.com",
+    //     text : "سلام عزیزم خوبی؟",
+    //     createAt : 123456789
+    // })
+
+    // socket.on('createEmail',(email)=>{
+    //     console.log('createEmail ',email)
+    // })
 
     socket.on('disconnect',()=>{
         console.log("server disconnect!")
