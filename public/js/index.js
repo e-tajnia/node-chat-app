@@ -1,17 +1,20 @@
 var socket = io();
 socket.on('connect',function(){
     console.log("client connect!")
-
 })
 socket.on('disconnect',function(){
     console.log('client disconnect!')
 })
 socket.on('newMessage',function(message){
-    console.log("new message run " ,message)
     var formmatedTime = moment(message.createdAt).format(`hh : mm a`)
-    var li = jQuery('<li></li>')
-    li.text(`${message.from} , ${formmatedTime}: ${message.text}`)
-    jQuery('#messages').append(li)
+    var template = jQuery('#message-template').html()
+    var html = Mustache.render(template,{
+        text : message.text,
+        from : message.from,
+        createdAt : formmatedTime
+    })
+
+    jQuery('#messages').append(html)
 
 })
 jQuery('#message-form').on('submit',function (e) {
@@ -37,16 +40,19 @@ locationButton.on('click',function () {
             longitude : position.coords.longitude
         })
     },function(){
-        return alert('Unable to fetch location')
+        locationButton.removeAttr('disable').text('send Location')
+        alert('Unable to fetch location')
     })
 })
-socket.on('newLocationMessage',function(message){
+socket.on('newLocationMessage',function(locmessage){
     
-    var formmatedTime = moment(message.createdAt).format(`hh : mm a`)
-    var li = jQuery('<li></li>')
-    var a = jQuery('<a target="_blank">My Current Location </a>')
-    li.text(`${message.from} , ${formmatedTime} : `)
-    a.attr('href',message.url)
-    li.append(a)
-    jQuery('#messages').append(li)
+    var formmatedTime = moment(locmessage.createdAt).format(`hh : mm a`)
+    var loctemplate = jQuery('#location-message-template').html()
+    var lochtml = Mustache.render(loctemplate,{
+        url : locmessage.url,
+        from : locmessage.from,
+        createdAt : formmatedTime
+    })
+
+    jQuery('#messages').append(lochtml)
 })
