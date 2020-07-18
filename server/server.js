@@ -4,9 +4,11 @@ const port = process.env.PORT || 3000
 const publicPath = path.join(__dirname,'../public')
 const {generateMessage,generateLocationMessage}=require('./utils/message')
 var {isRealString}= require('./utils/validation')
+var {Users}=require('./utils/user')
 
 const socketIo = require('socket.io')
 const http = require('http')
+var users = new Users();
 
 var app = express()
 
@@ -22,6 +24,9 @@ io.on('connection',(socket)=>{
             callback('name and room is required')
         }
         socket.join(param.room)
+        users.removeUser(socket.id)
+        users.addUsers(socket.id,param.name,param.room)
+        io.to(param.room).emit('updateUserList',users.getUserList(param.room))
         socket.emit('newMessage',generateMessage('Admin', 'wellcom to the chat'))
         socket.broadcast.to(param.room).emit('newMessage',generateMessage('Admin',`${param.name} joined`,))
         
@@ -29,16 +34,27 @@ io.on('connection',(socket)=>{
         
     })
     socket.on('createMessage',(message,callback)=>{
-        io.emit('newMessage',generateMessage(message.from, message.text))
+        var user = users.getUser(socket.id)
+        if (user && isRealString(message.text)) {
+            io.to(user.room).emit('newMessage',generateMessage(user.name, message.text))
+        }
+
         callback();
     })
 
     socket.on('createLocationMessage',(coords)=>{
-        io.emit('newLocationMessage', generateLocationMessage('Admin', coords.latitude , coords.longitude))
+        var user = users.getUser(socket.id)
+        if (user) {
+         io.to(user.room).emit('newLocationMessage', generateLocationMessage(user.name, coords.latitude , coords.longitude))
+        }
     })
 
     socket.on('disconnect',()=>{
-        console.log("user disconnect!")
+        var user = users.removeUser(socket.id)
+        if (user) {
+            io.to(user.room).emit('updateUserList',users.getUserList(user.room))
+            io.to(user.room).emit('newMessage',generateMessage('Admin',`${user.name} has leave`))
+        }
     })
 })
 
